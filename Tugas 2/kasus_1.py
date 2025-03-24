@@ -1,6 +1,8 @@
 import sys
+from queue import PriorityQueue
 from tabulate import tabulate
 
+# Representasi graf dengan jarak antar kota
 graf = {
     'Arad': {'Zerind': 75, 'Sibiu': 140, 'Timisoara': 118},
     'Zerind': {'Arad': 75, 'Oradea': 71},
@@ -24,49 +26,116 @@ graf = {
     'Eforie': {'Hirsova': 86}
 }
 
+# Heuristic untuk Best First Search (jarak langsung ke Bucharest)
+heuristic = {
+    'Arad': 366, 'Zerind': 374, 'Oradea': 380, 'Sibiu': 253, 'Timisoara': 329,
+    'Lugoj': 244, 'Mehadia': 241, 'Drobeta': 242, 'Craiova': 160, 'Rimnicu Vilcea': 193,
+    'Pitesti': 100, 'Fagaras': 176, 'Bucarest': 0, 'Giurgiu': 77, 'Urziceni': 80,
+    'Vaslui': 199, 'Iasi': 226, 'Neamt': 234, 'Hirsova': 151, 'Eforie': 161
+}
+
+# Algoritma Dijkstra
 def dijkstra(graf, awal, tujuan):
     jarak = {node: sys.maxsize for node in graf}
     jarak[awal] = 0
     sebelum = {node: None for node in graf}
     queue = list(graf.keys())
+
     while queue:
         queue.sort(key=lambda node: jarak[node])
         node_terdekat = queue.pop(0)
+
         if node_terdekat == tujuan:
             break
+
         for tetangga in graf[node_terdekat]:
             jarak_baru = jarak[node_terdekat] + graf[node_terdekat][tetangga]
             if jarak_baru < jarak[tetangga]:
                 jarak[tetangga] = jarak_baru
                 sebelum[tetangga] = node_terdekat
+
     jalur = []
     node = tujuan
     while node is not None:
         jalur.insert(0, node)
         node = sebelum[node]
+
     return jalur
 
+# Algoritma Depth First Search (DFS)
 def dfs(graf, awal, tujuan, jalur=[]):
     jalur = jalur + [awal]
     if awal == tujuan:
         return [jalur]
-    if awal not in graf:
-        return []
+
     rute = []
     for tetangga in graf[awal]:
         if tetangga not in jalur:
             new_rute = dfs(graf, tetangga, tujuan, jalur)
             rute.extend(new_rute)
+
     return rute
 
-print("Hasil Pencarian Rute")
+# Algoritma Breadth First Search (BFS)
+def bfs(graf, awal, tujuan):
+    queue = [[awal]]
+
+    while queue:
+        jalur = queue.pop(0)
+        node = jalur[-1]
+
+        if node == tujuan:
+            return jalur
+
+        for tetangga in graf[node]:
+            if tetangga not in jalur:
+                queue.append(jalur + [tetangga])
+
+    return None
+
+# Algoritma Best First Search (Greedy BFS)
+def best_first_search(graf, awal, tujuan, heuristic):
+    queue = PriorityQueue()
+    queue.put((heuristic[awal], [awal]))
+
+    while not queue.empty():
+        _, jalur = queue.get()
+        node = jalur[-1]
+
+        if node == tujuan:
+            return jalur
+
+        for tetangga in graf[node]:
+            if tetangga not in jalur:
+                queue.put((heuristic[tetangga], jalur + [tetangga]))
+
+    return None
+
+# Menjalankan algoritma
+awal, tujuan = 'Arad', 'Bucarest'
+
+jalur_dijkstra = dijkstra(graf, awal, tujuan)
+jalur_bfs = bfs(graf, awal, tujuan)
+jalur_bestfs = best_first_search(graf, awal, tujuan, heuristic)
+rute_dfs = dfs(graf, awal, tujuan)
+
+# Menampilkan hasil
+print("\nHasil Pencarian Rute:")
 print("-------------------------")
 
-jalur_dijkstra = dijkstra(graf, 'Arad', 'Bucarest')
-print("Rute BFS:")
-print(jalur_dijkstra)
+# Dijkstra
+print("\n🔹 Rute Terpendek (Dijkstra):")
+print(" → ".join(jalur_dijkstra))
 
-rute = dfs(graf, 'Arad', 'Bucarest')
-print("\nRute DFS:")
-table = [[f"Rute {i+1}", jalur] for i, jalur in enumerate(rute)]
-print(tabulate(table, headers=["Rute", "Jalur"], tablefmt="grid"))
+# BFS
+print("\n🔹 Rute dengan Node Paling Sedikit (BFS):")
+print(" → ".join(jalur_bfs))
+
+# Best First Search
+print("\n🔹 Rute dengan Perkiraan Heuristic (Best First Search):")
+print(" → ".join(jalur_bestfs))
+
+# DFS
+print("\n🔹 Semua Rute (DFS):")
+table = [[f"Rute {i+1}", " → ".join(jalur)] for i, jalur in enumerate(rute_dfs)]
+print(tabulate(table, headers=["No", "Jalur"], tablefmt="grid"))
