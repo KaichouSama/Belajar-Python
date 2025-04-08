@@ -34,3 +34,47 @@ app.listen(PORT, () => {
     console.log(`✅ Server berjalan di http://localhost:${PORT}`);
 });
 
+// const express = require('express');
+// const cors = require('cors');
+// const { spawn } = require('child_process');
+
+// const app = express();
+// const PORT = 5000;
+
+// app.use(cors());
+// app.use(express.json());
+
+// // API untuk menerima kota awal dan tujuan, lalu memanggil script Python
+// app.post('/cari-rute', (req, res) => {
+//     const { start, goal, algorithm } = req.body;
+
+//     if (!start || !goal || !algorithm) {
+//         return res.status(400).json({ error: "Pastikan semua data dikirim!" });
+//     }
+
+//     // Panggil script Python dengan parameter (start, goal, algorithm)
+//     const pythonProcess = spawn('python', ['backend/script.py', start, goal, algorithm]);
+
+//     let resultData = '';
+
+//     pythonProcess.stdout.on('data', (data) => {
+//         resultData += data.toString();
+//     });
+
+//     pythonProcess.stderr.on('data', (data) => {
+//         console.error(`Error: ${data}`);
+//     });
+
+//     pythonProcess.on('close', (code) => {
+//         if (code === 0) {
+//             res.json({ route: resultData.trim().split(' → ') });
+//         } else {
+//             res.status(500).json({ error: "Gagal menjalankan script Python." });
+//         }
+//     });
+// });
+
+// // Jalankan server
+// app.listen(PORT, () => {
+//     console.log(`✅ Server berjalan di http://localhost:${PORT}`);
+// });

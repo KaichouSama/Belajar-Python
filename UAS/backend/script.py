@@ -1,4 +1,5 @@
 import sys
+from queue import PriorityQueue
 
 # Representasi graf dengan jarak antar kota
 graf = {
@@ -52,7 +53,7 @@ def dijkstra(graf, awal, tujuan):
 
     return " → ".join(jalur)
 
-# Algoritma BFS
+# Algoritma Breadth First Search (BFS)
 def bfs(graf, awal, tujuan):
     queue = [[awal]]
 
@@ -69,7 +70,7 @@ def bfs(graf, awal, tujuan):
 
     return "Tidak ditemukan jalur"
 
-# Eksekusi program berdasarkan input dari Node.js
+# Eksekusi program berdasarkan input dari server
 if __name__ == "__main__":
     start = sys.argv[1]
     goal = sys.argv[2]
