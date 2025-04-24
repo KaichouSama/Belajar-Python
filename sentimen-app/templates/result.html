@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hasil Analisis Naive Bayes</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+
+    h2 {
+      color: #2c3e50;
+      margin-top: 30px;
+    }
+
+    ul {
+      list-style-type: disc;
+      padding-left: 20px;
+      margin-top: 10px;
+    }
+
+    li {
+      margin-bottom: 5px;
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+      margin-top: 10px;
+      background-color: #fff;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 600px;
+    }
+
+    th,
+    td {
+      border: 1px solid #ccc;
+      padding: 8px 12px;
+      text-align: center;
+    }
+
+    th {
+      background-color: #ecf0f1;
+    }
+
+    .btn-back {
+      display: inline-block;
+      margin-top: 30px;
+      padding: 10px 20px;
+      background-color: #3498db;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 5px;
+      transition: background-color 0.3s ease;
+    }
+
+    .btn-back:hover {
+      background-color: #2980b9;
+    }
+
+    .sentimen-box {
+      background-color: #eaf6ff;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        margin: 10px;
+      }
+
+      h2 {
+        font-size: 18px;
+      }
+
+      .btn-back {
+        width: 100%;
+        text-align: center;
+      }
+    }
+
+    .section {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      margin-bottom: 30px;
+    }
+
+    .section h2 {
+      color: #2c3e50;
+      margin-bottom: 15px;
+    }
+
+    .section label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+    }
+
+    .section input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    .section .submit-btn {
+      padding: 10px 20px;
+      background-color: #3498db;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .section .submit-btn:hover {
+      background-color: #2980b9;
+    }
+  </style>
+</head>
+
+<body>
+  <section class="section">
+    <h2>Klasifikasi Ulasan Manual</h2>
+    <form action="/klasifikasi" method="POST">
+      <label for="ulasan">Masukkan ulasan:</label>
+      <input
+        type="text"
+        name="ulasan"
+        id="ulasan"
+        placeholder="Contoh: Aplikasi ini sangat membantu!"
+        required
+        value="{{ request.form.ulasan or '' }}"
+      />
+      <button type="submit" class="submit-btn">Klasifikasikan</button>
+    </form>
+  </section>
+  
+
+  {% if hasil_klasifikasi %}
+  <div class="sentimen-box">
+    Hasil Sentimen: {{ hasil_klasifikasi }}
+  </div>
+  {% endif %}
+
+  <h2>Distribusi Awal:</h2>
+  {% if distribusi_awal %}
+  <ul>
+    {% for label, count in distribusi_awal.items() %}
+    <li>{{ label }}: {{ count }}</li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p>Tidak ada data distribusi awal.</p>
+  {% endif %}
+
+  <h2>Distribusi Setelah Balancing:</h2>
+  {% if distribusi_balanced %}
+  <ul>
+    {% for label, count in distribusi_balanced.items() %}
+    <li>{{ label }}: {{ count }}</li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p>Tidak ada data setelah balancing.</p>
+  {% endif %}
+
+  <h2>Akurasi: {{ "%.2f"|format(akurasi * 100) }}%</h2>
+
+  <h2>Classification Report:</h2>
+  <div class="table-wrapper">
+    <table>
+      <tr>
+        <th>Label</th>
+        <th>Precision</th>
+        <th>Recall</th>
+        <th>F1-score</th>
+        <th>Support</th>
+      </tr>
+      {% for label, metrics in report.items() if label not in ['accuracy', 'macro avg', 'weighted avg'] %}
+      <tr>
+        <td>{{ label }}</td>
+        <td>{{ "%.2f"|format(metrics['precision']) }}</td>
+        <td>{{ "%.2f"|format(metrics['recall']) }}</td>
+        <td>{{ "%.2f"|format(metrics['f1-score']) }}</td>
+        <td>{{ metrics['support'] }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+
+  <h2>Confusion Matrix:</h2>
+  <div class="table-wrapper">
+    <table>
+      {% for row in matrix %}
+      <tr>
+        {% for value in row %}
+        <td>{{ value }}</td>
+        {% endfor %}
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+
+  <h2>Hasil Prediksi:</h2>
+  <div class="table-wrapper">
+    <table>
+      <tr>
+        <th>Text</th>
+        <th>Actual</th>
+        <th>Predicted</th>
+      </tr>
+      {% for row in hasil %}
+      <tr>
+        <td>{{ row['full_text'] }}</td>
+        <td>{{ row['actual'] }}</td>
+        <td>{{ row['predicted'] }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+
+  <div style="text-align: center; margin-top: 20px;">
+    {% if page > 1 %}
+    <a href="{{ url_for('hasil', page=page - 1) }}" class="btn-back">← Prev</a>
+    {% else %}
+    <span class="btn-back" style="background-color: #ccc; pointer-events: none;">← Prev</span>
+    {% endif %}
+
+    <span style="margin: 0 10px; font-weight: bold;">Halaman {{ page }} dari {{ total_pages }}</span>
+
+    {% if page < total_pages %} <a href="{{ url_for('hasil', page=page + 1) }}" class="btn-back">Next →</a>
+      {% else %}
+      <span class="btn-back" style="background-color: #ccc; pointer-events: none;">Next →</span>
+      {% endif %}
+  </div>
+
+  <a href="/" class="btn-back">← Kembali</a>
+</body>
+
+</html>

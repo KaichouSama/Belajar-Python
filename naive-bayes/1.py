@@ -7,7 +7,7 @@ from sklearn.metrics import classification_report, confusion_matrix, accuracy_sc
 from sklearn.utils import resample
 
 # 1. Load Data
-df = pd.read_csv("C:/Users/zeroo/OneDrive/Documents/Project Mandiri/AI (Python)/Project Akhir/hasil_sentimen_prabowo.csv")
+df = pd.read_csv("C:/Users/zeroo/OneDrive/Documents/Project Mandiri/AI (Python)/naive-bayes/hasil_sentimen_prabowo.csv")
 df = df[["full_text", "sentiment"]].dropna()
 df["full_text"] = df["full_text"].astype(str)
 

@@ -1,10 +1,18 @@
 import os
 import pandas as pd
-from flask import Flask, request, render_template, send_file, flash
+import requests
+from flask import Flask, request, render_template, send_file, flash, redirect, url_for
 from transformers import pipeline
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.utils import resample
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
+from math import ceil
+import joblib
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'  # Needed for flash messages
+app.secret_key = 'rahasia-super-aman-123'
 
 UPLOAD_FOLDER = 'uploads'
 HASIL_FOLDER = 'hasil'
@@ -65,6 +73,168 @@ def proses():
     df.to_csv(hasil_path, index=False)
 
     return send_file(hasil_path, as_attachment=True)
+
+@app.route('/analyze_csv', methods=['POST'])
+def analyze_csv():
+    file = request.files['file']
+    if file.filename == '':
+        flash("No selected file", "error")
+        return redirect(url_for('index'))
+
+    df = pd.read_csv(file)
+    if 'full_text' not in df.columns or 'sentiment' not in df.columns:
+        flash("CSV must contain 'full_text' and 'sentiment'", "error")
+        return redirect(url_for('index'))
+
+    distribusi_awal = df['sentiment'].value_counts()
+    kelas = df['sentiment'].unique()
+    max_count = df['sentiment'].value_counts().max()
+    df_balanced = pd.concat([
+        resample(df[df['sentiment'] == k], replace=True, n_samples=max_count, random_state=42)
+        for k in kelas
+    ])
+    distribusi_balanced = df_balanced['sentiment'].value_counts()
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        df_balanced["full_text"], df_balanced["sentiment"], test_size=0.2, random_state=42
+    )
+
+    vectorizer = TfidfVectorizer(ngram_range=(1, 2), max_features=5000)
+    X_train_vec = vectorizer.fit_transform(X_train)
+    X_test_vec = vectorizer.transform(X_test)
+
+    model = MultinomialNB()
+    model.fit(X_train_vec, y_train)
+    y_pred = model.predict(X_test_vec)
+
+    akurasi = accuracy_score(y_test, y_pred)
+    report = classification_report(y_test, y_pred, output_dict=True)
+    matrix = confusion_matrix(y_test, y_pred)
+
+    hasil_df = pd.DataFrame({
+        "full_text": X_test,
+        "actual": y_test,
+        "predicted": y_pred
+    })
+    hasil_df.to_csv(os.path.join(HASIL_FOLDER, "last_result.csv"), index=False)
+
+    report_path = os.path.join(HASIL_FOLDER, "report.json")
+    with open(report_path, "w") as f:
+        import json
+        json.dump({
+            "distribusi_awal": distribusi_awal.to_dict(),
+            "distribusi_balanced": distribusi_balanced.to_dict(),
+            "akurasi": akurasi,
+            "report": report,
+            "matrix": matrix.tolist()
+        }, f)
+
+    joblib.dump(vectorizer, os.path.join(HASIL_FOLDER, "vectorizer.pkl"))
+    joblib.dump(model, os.path.join(HASIL_FOLDER, "model.pkl"))
+
+    return redirect(url_for('hasil', page=1))
+
+@app.route('/hasil')
+def hasil():
+    import json
+
+    hasil_path = os.path.join(HASIL_FOLDER, "last_result.csv")
+    report_path = os.path.join(HASIL_FOLDER, "report.json")
+
+    if not os.path.exists(hasil_path) or not os.path.exists(report_path):
+        flash("Belum ada hasil analisis. Silakan unggah dan analisis file terlebih dahulu.", "error")
+        return redirect(url_for('index'))
+
+    hasil_df = pd.read_csv(hasil_path)
+    with open(report_path, "r") as f:
+        meta = json.load(f)
+
+    page = int(request.args.get('page', 1))
+    per_page = 10
+    total_data = len(hasil_df)
+    total_pages = ceil(total_data / per_page)
+    start = (page - 1) * per_page
+    end = start + per_page
+    hasil_page = hasil_df.iloc[start:end].to_dict(orient='records')
+
+    return render_template('result.html',
+                           distribusi_awal=meta["distribusi_awal"],
+                           distribusi_balanced=meta["distribusi_balanced"],
+                           akurasi=meta["akurasi"],
+                           report=meta["report"],
+                           matrix=meta["matrix"],
+                           hasil=hasil_page,
+                           page=page,
+                           total_pages=total_pages)
+
+@app.route('/klasifikasi', methods=['POST'])
+def klasifikasi():
+    ulasan = request.form.get('ulasan')
+    if not ulasan:
+        return render_template('result.html', hasil_klasifikasi="(ulasan kosong)")
+
+    vectorizer_path = os.path.join(HASIL_FOLDER, "vectorizer.pkl")
+    model_path = os.path.join(HASIL_FOLDER, "model.pkl")
+    hasil_path = os.path.join(HASIL_FOLDER, "last_result.csv")
+    report_path = os.path.join(HASIL_FOLDER, "report.json")
+
+    if not (os.path.exists(vectorizer_path) and os.path.exists(model_path) and os.path.exists(hasil_path) and os.path.exists(report_path)):
+        return render_template('result.html', hasil_klasifikasi="Model belum dilatih")
+
+    import joblib, json
+    vectorizer = joblib.load(vectorizer_path)
+    model = joblib.load(model_path)
+    hasil_df = pd.read_csv(hasil_path)
+
+    with open(report_path, 'r') as f:
+        meta = json.load(f)
+
+    hasil = model.predict(vectorizer.transform([ulasan]))[0]
+
+    page = 1
+    per_page = 10
+    hasil_page = hasil_df.iloc[0:per_page].to_dict(orient='records')
+
+    return render_template('result.html',
+        hasil_klasifikasi=hasil,
+        distribusi_awal=meta["distribusi_awal"],
+        distribusi_balanced=meta["distribusi_balanced"],
+        akurasi=meta["akurasi"],
+        report=meta["report"],
+        matrix=meta["matrix"],
+        hasil=hasil_page,
+        page=page,
+        total_pages=ceil(len(hasil_df)/per_page)
+    )
+
+@app.route('/chatbot', methods=['POST'])
+def chatbot():
+    user_input = request.json.get('message')
+    if not user_input:
+        return {'response': 'Pesan tidak boleh kosong'}
+
+    headers = {
+        "Authorization": "Bearer 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",
+        "Content-Type": "application/json"
+    }
+
+    payload = {
+        "inputs": f"<|user|> {user_input} <|assistant|>",
+        "parameters": {"max_new_tokens": 500, "temperature": 0.7}
+    }
+
+    try:
+        response = requests.post(
+            "https://api-inference.huggingface.co/models/HuggingFaceH4/zephyr-7b-beta",
+            headers=headers,
+            json=payload
+        )
+        response.raise_for_status()
+        hasil = response.json()
+        jawaban = hasil[0]["generated_text"].split("<|assistant|>")[-1].strip()
+        return {'response': jawaban}
+    except Exception as e:
+        return {'response': f'Terjadi kesalahan saat memanggil API: {e}'}
 
 if __name__ == '__main__':
     app.run(debug=True)

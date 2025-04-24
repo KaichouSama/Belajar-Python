@@ -1,115 +1,238 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analisis Sentimen CSV</title>
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            padding: 20px;
-            background-color: #f4f7fa;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Analisis Sentimen CSV</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      padding: 20px;
+      background-color: #f4f7fa;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 0;
+      min-height: 100vh;
+    }
 
-        .container {
-            background-color: #fff;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 600px;
-            text-align: center;
-        }
+    .container {
+      background-color: #fff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 600px;
+      text-align: center;
+    }
 
-        h2 {
-            color: #333;
-            font-size: 24px;
-            margin-bottom: 20px;
-        }
+    h2 {
+      color: #333;
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
 
-        label {
-            font-size: 16px;
-            margin-bottom: 10px;
-            display: block;
-            color: #333;
-        }
+    label {
+      font-size: 16px;
+      color: #333;
+      display: block;
+      margin-bottom: 8px;
+    }
 
-        input[type="file"] {
-            padding: 10px;
-            margin-top: 10px;
-            width: 100%;
-            max-width: 100%;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
+    input[type="file"] {
+      padding: 10px;
+      width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
 
-        button {
-            padding: 12px 20px;
-            margin-top: 20px;
-            background-color: #4CAF50;
-            color: white;
-            font-size: 16px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            width: 100%;
-            max-width: 100%;
-        }
+    button {
+      padding: 12px 20px;
+      margin-top: 20px;
+      background-color: #4CAF50;
+      color: #fff;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      width: 100%;
+    }
 
-        button:hover {
-            background-color: #45a049;
-        }
+    button:hover {
+      background-color: #45a049;
+    }
 
-        .error {
-            color: red;
-            margin-top: 10px;
-        }
+    .section {
+      margin-top: 40px;
+    }
 
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .container {
-                padding: 20px;
-            }
+    @media (max-width:768px) {
+      .container {
+        padding: 20px;
+      }
 
-            h2 {
-                font-size: 20px;
-            }
+      h2 {
+        font-size: 20px;
+      }
 
-            button {
-                padding: 10px 15px;
-                font-size: 14px;
-            }
-        }
+      button {
+        font-size: 14px;
+        padding: 10px;
+      }
+    }
 
-        @media (max-width: 480px) {
-            .container {
-                padding: 15px;
-            }
+    @media (max-width:480px) {
+      .container {
+        padding: 15px;
+      }
 
-            h2 {
-                font-size: 18px;
-            }
+      h2 {
+        font-size: 18px;
+      }
 
-            button {
-                padding: 10px 12px;
-                font-size: 14px;
-            }
-        }
-    </style>
+      button {
+        font-size: 14px;
+        padding: 10px;
+      }
+    }
+
+    /* Chatbox */
+    .chatbox {
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      padding: 15px;
+      max-height: 60vh;
+      overflow-y: auto;
+      background-color: #fdfdfd;
+      margin-bottom: 8px;
+      text-align: left;
+    }
+
+    .chatbox .message {
+      max-width: 80%;
+      padding: 10px 15px;
+      margin: 8px 0;
+      border-radius: 20px;
+      display: inline-block;
+      clear: both;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    .chatbox .user-message {
+      background-color: #DCF8C6;
+      float: right;
+    }
+
+    .chatbox .bot-message {
+      background-color: #eee;
+      float: left;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 10px;
+    }
+
+    .input-group input {
+      flex: 1;
+      padding: 12px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    .input-group button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .input-group button:hover {
+      background-color: #45a049;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
 </head>
+
 <body>
-    <div class="container">
-        <h2>Upload File CSV untuk Analisis Sentimen</h2>
-        <form action="/proses" method="POST" enctype="multipart/form-data">
-            <label for="csvfile">Pilih file CSV:</label>
-            <input type="file" name="csvfile" id="csvfile" accept=".csv" required><br>
-            <button type="submit">Proses dan Unduh</button>
-        </form>
+  <div class="container">
+    <h2>Upload File CSV Tanpa Sentimen</h2>
+    <form action="/proses" method="POST" enctype="multipart/form-data">
+      <label for="csvfile">Pilih file CSV:</label>
+      <input type="file" name="csvfile" id="csvfile" accept=".csv" required />
+      <button type="submit">Prediksi dan Unduh</button>
+    </form>
+
+    <div class="section">
+      <h2>Upload File CSV Sudah Ada Sentimen<br><small>(Analisis Naive Bayes)</small></h2>
+      <form action="/analyze_csv" method="POST" enctype="multipart/form-data">
+        <label for="analyzecsv">Pilih file CSV:</label>
+        <input type="file" name="file" id="analyzecsv" accept=".csv" required />
+        <button type="submit">Analisis dan Tampilkan Hasil</button>
+      </form>
     </div>
+
+    <div class="section">
+      <h2>Chatbot Interaktif</h2>
+      <div id="chatbox" class="chatbox">
+        <div class="bot-message message">Halo! Saya adalah chatbot analisis sentimen. Tanyakan sesuatu!</div>
+      </div>
+      <div class="input-group">
+        <input type="text" id="chatInput" placeholder="Tulis pertanyaan..."
+          onkeypress="if(event.key==='Enter') kirimChat()" />
+        <button onclick="kirimChat()">Kirim</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function appendMessage(text, className) {
+      const chatbox = document.getElementById("chatbox");
+      const div = document.createElement("div");
+      div.className = className + " message";
+      div.innerText = text;
+      chatbox.appendChild(div);
+      chatbox.scrollTop = chatbox.scrollHeight;
+    }
+
+    function kirimChat() {
+      const input = document.getElementById("chatInput");
+      const msg = input.value.trim();
+      if (!msg) return;
+
+      appendMessage(msg, "user-message");
+      input.value = "";
+
+      fetch('/chatbot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: msg })
+      })
+        .then(res => res.json())
+        .then(data => {
+          appendMessage(data.response, "bot-message");
+        })
+        .catch(() => {
+          document.getElementById("typingIndicator").style.display = "none";
+          appendMessage("Maaf, terjadi kesalahan.", "bot-message");
+        });
+    }
+  </script>
 </body>
+
 </html>
