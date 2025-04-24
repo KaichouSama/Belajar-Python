@@ -207,34 +207,6 @@ def klasifikasi():
         total_pages=ceil(len(hasil_df)/per_page)
     )
 
-@app.route('/chatbot', methods=['POST'])
-def chatbot():
-    user_input = request.json.get('message')
-    if not user_input:
-        return {'response': 'Pesan tidak boleh kosong'}
-
-    headers = {
-        "Authorization": "Bearer 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",
-        "Content-Type": "application/json"
-    }
-
-    payload = {
-        "inputs": f"<|user|> {user_input} <|assistant|>",
-        "parameters": {"max_new_tokens": 500, "temperature": 0.7}
-    }
-
-    try:
-        response = requests.post(
-            "https://api-inference.huggingface.co/models/HuggingFaceH4/zephyr-7b-beta",
-            headers=headers,
-            json=payload
-        )
-        response.raise_for_status()
-        hasil = response.json()
-        jawaban = hasil[0]["generated_text"].split("<|assistant|>")[-1].strip()
-        return {'response': jawaban}
-    except Exception as e:
-        return {'response': f'Terjadi kesalahan saat memanggil API: {e}'}
 
 if __name__ == '__main__':
     app.run(debug=True)
