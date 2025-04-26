@@ -183,56 +183,63 @@
       <form action="/analyze_csv" method="POST" enctype="multipart/form-data">
         <label for="analyzecsv">Pilih file CSV:</label>
         <input type="file" name="file" id="analyzecsv" accept=".csv" required />
-        <button type="submit">Analisis dan Tampilkan Hasil</button>
+        <div style="margin-top: 15px; text-align: left; display: flex; align-items: center; gap: 8px;">
+          <input type="checkbox" name="balance_before_split" id="balance_before_split"
+            style="width: 18px; height: 18px;">
+          <label for="balance_before_split" style="margin: 0; font-size: 16px; color: #333;">Balancing sebelum split
+            data</label>
+        </div>
+
+        <button type="submit" style="margin-top: 20px;">Analisis dan Tampilkan Hasil</button>
+
       </form>
+
+      <div class="section">
+        <h2>Chatbot Interaktif</h2>
+        <div id="chatbox" class="chatbox">
+          <div class="bot-message message">Halo! Saya adalah chatbot analisis sentimen. Tanyakan sesuatu!</div>
+        </div>
+        <div class="input-group">
+          <input type="text" id="chatInput" placeholder="Tulis pertanyaan..."
+            onkeypress="if(event.key==='Enter') kirimChat()" />
+          <button onclick="kirimChat()">Kirim</button>
+        </div>
+      </div>
     </div>
 
-    <div class="section">
-      <h2>Chatbot Interaktif</h2>
-      <div id="chatbox" class="chatbox">
-        <div class="bot-message message">Halo! Saya adalah chatbot analisis sentimen. Tanyakan sesuatu!</div>
-      </div>
-      <div class="input-group">
-        <input type="text" id="chatInput" placeholder="Tulis pertanyaan..."
-          onkeypress="if(event.key==='Enter') kirimChat()" />
-        <button onclick="kirimChat()">Kirim</button>
-      </div>
-    </div>
-  </div>
+    <script>
+      function appendMessage(text, className) {
+        const chatbox = document.getElementById("chatbox");
+        const div = document.createElement("div");
+        div.className = className + " message";
+        div.innerText = text;
+        chatbox.appendChild(div);
+        chatbox.scrollTop = chatbox.scrollHeight;
+      }
 
-  <script>
-    function appendMessage(text, className) {
-      const chatbox = document.getElementById("chatbox");
-      const div = document.createElement("div");
-      div.className = className + " message";
-      div.innerText = text;
-      chatbox.appendChild(div);
-      chatbox.scrollTop = chatbox.scrollHeight;
-    }
+      function kirimChat() {
+        const input = document.getElementById("chatInput");
+        const msg = input.value.trim();
+        if (!msg) return;
 
-    function kirimChat() {
-      const input = document.getElementById("chatInput");
-      const msg = input.value.trim();
-      if (!msg) return;
+        appendMessage(msg, "user-message");
+        input.value = "";
 
-      appendMessage(msg, "user-message");
-      input.value = "";
-
-      fetch('/chatbot', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: msg })
-      })
-        .then(res => res.json())
-        .then(data => {
-          appendMessage(data.response, "bot-message");
+        fetch('/chatbot', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: msg })
         })
-        .catch(() => {
-          document.getElementById("typingIndicator").style.display = "none";
-          appendMessage("Maaf, terjadi kesalahan.", "bot-message");
-        });
-    }
-  </script>
+          .then(res => res.json())
+          .then(data => {
+            appendMessage(data.response, "bot-message");
+          })
+          .catch(() => {
+            document.getElementById("typingIndicator").style.display = "none";
+            appendMessage("Maaf, terjadi kesalahan.", "bot-message");
+          });
+      }
+    </script>
 </body>
 
 </html>

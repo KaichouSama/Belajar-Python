@@ -1,6 +1,5 @@
 import os
 import pandas as pd
-import requests
 from flask import Flask, request, render_template, send_file, flash, redirect, url_for
 from transformers import pipeline
 from sklearn.model_selection import train_test_split
@@ -87,18 +86,45 @@ def analyze_csv():
         return redirect(url_for('index'))
 
     distribusi_awal = df['sentiment'].value_counts()
-    kelas = df['sentiment'].unique()
-    max_count = df['sentiment'].value_counts().max()
-    df_balanced = pd.concat([
-        resample(df[df['sentiment'] == k], replace=True, n_samples=max_count, random_state=42)
-        for k in kelas
-    ])
-    distribusi_balanced = df_balanced['sentiment'].value_counts()
+    balance_before_split = 'balance_before_split' in request.form
 
-    X_train, X_test, y_train, y_test = train_test_split(
-        df_balanced["full_text"], df_balanced["sentiment"], test_size=0.2, random_state=42
-    )
+    if balance_before_split:
+        # === Balancing sebelum split ===
+        kelas = df['sentiment'].unique()
+        max_count = df['sentiment'].value_counts().max()
 
+        df_balanced = pd.concat([
+            resample(df[df['sentiment'] == k], replace=True, n_samples=max_count, random_state=42)
+            for k in kelas
+        ])
+
+        distribusi_balanced = df_balanced['sentiment'].value_counts()
+
+        X_train, X_test, y_train, y_test = train_test_split(
+            df_balanced["full_text"], df_balanced["sentiment"], test_size=0.2, random_state=42, stratify=df_balanced["sentiment"]
+        )
+
+    else:
+        # === Balancing setelah split ===
+        X_train, X_test, y_train, y_test = train_test_split(
+            df["full_text"], df["sentiment"], test_size=0.2, random_state=42, stratify=df["sentiment"]
+        )
+
+        train_df = pd.DataFrame({'full_text': X_train, 'sentiment': y_train})
+        kelas = train_df['sentiment'].unique()
+        max_count = train_df['sentiment'].value_counts().max()
+
+        train_df_balanced = pd.concat([
+            resample(train_df[train_df['sentiment'] == k], replace=True, n_samples=max_count, random_state=42)
+            for k in kelas
+        ])
+
+        distribusi_balanced = train_df_balanced['sentiment'].value_counts()
+
+        X_train = train_df_balanced['full_text']
+        y_train = train_df_balanced['sentiment']
+
+    # === Mulai training ===
     vectorizer = TfidfVectorizer(ngram_range=(1, 2), max_features=5000)
     X_train_vec = vectorizer.fit_transform(X_train)
     X_test_vec = vectorizer.transform(X_test)
@@ -204,9 +230,25 @@ def klasifikasi():
         matrix=meta["matrix"],
         hasil=hasil_page,
         page=page,
-        total_pages=ceil(len(hasil_df)/per_page)
-    )
+        total_pages=ceil(len(hasil_df)/per_page))
 
+@app.route('/chatbot', methods=['POST'])
+def chatbot():
+    data = request.get_json()
+    user_message = data.get('message', '').lower()
+
+    # Contoh data dummy dengan respon sederhana
+    responses = {
+        "halo": "Halo juga! Ada yang bisa saya bantu terkait analisis sentimen?",
+        "apa itu analisis sentimen": "Analisis sentimen adalah proses mengidentifikasi emosi atau opini dalam teks, seperti positif, netral, atau negatif.",
+        "model apa yang digunakan": "Kami menggunakan model Naive Bayes dan juga BERT multilingual dari Hugging Face.",
+        "terima kasih": "Sama-sama! 😊",
+        "siapa kamu": "Saya adalah chatbot untuk membantu analisis sentimen pada data teks."
+    }
+
+    response = responses.get(user_message, "Maaf, saya belum mengerti pertanyaan itu. Coba yang lain ya!")
+
+    return {"response": response}
 
 if __name__ == '__main__':
     app.run(debug=True)
