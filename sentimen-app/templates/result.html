@@ -184,6 +184,7 @@
     .confusion-high {
       background-color: rgba(52, 152, 219, 0.8);
     }
+
   </style>
 </head>
 
@@ -197,7 +198,6 @@
       <button type="submit" class="submit-btn">Klasifikasikan</button>
     </form>
   </section>
-
 
   {% if hasil_klasifikasi %}
   <div class="sentimen-box">
@@ -265,20 +265,15 @@
         {% for j in range(matrix[i]|length) %}
         {% set val = matrix[i][j] %}
         {% set ratio = (val / max_val) if max_val else 0 %}
-        {% if ratio < 0.3 %}
-          {% set color_class='confusion-low' %}
-        {% elif ratio < 0.7 %}
-          {% set color_class='confusion-mid' %}
-        {% else %}
-          {% set color_class='confusion-high' %}
-        {% endif %}
-        <td class="confusion-cell {{ color_class }}">{{ val }}</td>
-        {% endfor %}
+        {% if ratio < 0.3 %} {% set color_class='confusion-low' %} {% elif ratio < 0.7 %} {% set
+          color_class='confusion-mid' %} {% else %} {% set color_class='confusion-high' %} {% endif %} <td
+          class="confusion-cell {{ color_class }}">{{ val }}</td>
+          {% endfor %}
       </tr>
       {% endfor %}
     </table>
   </div>
-  
+
 
   <h2>Hasil Prediksi:</h2>
   <div class="table-wrapper">
@@ -311,6 +306,14 @@
       {% else %}
       <span class="btn-back" style="background-color: #ccc; pointer-events: none;">Next →</span>
       {% endif %}
+  </div>
+
+  <div style="text-align: center;">
+    <form action="{{ url_for('hasil') }}" method="get">
+      <label for="page-jump">Ke Halaman:</label>
+      <input type="number" name="page" min="1" max="{{ total_pages }}" value="{{ page }}" id="page-jump" />
+      <button type="submit" class="btn-back">Go</button>
+    </form>
   </div>
 
   <a href="/" class="btn-back">← Kembali</a>

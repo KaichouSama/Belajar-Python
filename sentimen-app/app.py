@@ -1,5 +1,8 @@
 import os
 import pandas as pd
+import joblib
+from flask import Response
+from google_play_scraper import reviews, Sort
 from flask import Flask, request, render_template, send_file, flash, redirect, url_for
 from transformers import pipeline
 from sklearn.model_selection import train_test_split
@@ -8,7 +11,6 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.utils import resample
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
 from math import ceil
-import joblib
 
 app = Flask(__name__)
 app.secret_key = 'rahasia-super-aman-123'
@@ -231,6 +233,55 @@ def klasifikasi():
         hasil=hasil_page,
         page=page,
         total_pages=ceil(len(hasil_df)/per_page))
+
+@app.route('/download_ulasan', methods=['POST'])
+def download_ulasan():
+    app_id = request.form.get('appid')
+    if not app_id:
+        flash("App ID kosong.", "error")
+        return redirect(url_for('index'))
+
+    try:
+        hasil_reviews, _ = reviews(
+            app_id,
+            lang='id',       # bahasa Indonesia
+            country='id',    # negara Indonesia
+            sort=Sort.NEWEST,
+            count=1000       # ambil 1000 ulasan terbaru
+        )
+
+        # Convert ke DataFrame
+        df = pd.DataFrame(hasil_reviews)
+
+        # Membuat DataFrame baru
+        df_simple = pd.DataFrame({
+            'userName': df['userName'],
+            'score': df['score'],
+            'at': df['at'],
+            'full_text': df['content']
+        })
+
+        # Menambahkan kolom kategori berdasarkan score
+        def categorize(score):
+            if score >= 4:
+                return 'Positif'
+            elif score == 3:
+                return 'Netral'
+            else:
+                return 'Negatif'
+
+        df_simple['kategori'] = df_simple['score'].apply(categorize)
+
+        # Simpan ke CSV
+        filename = f"ulasan_{app_id.replace('.', '_')}.csv"
+        file_path = os.path.join(HASIL_FOLDER, filename)
+        df_simple.to_csv(file_path, index=False)
+
+        return send_file(file_path, as_attachment=True)
+
+    except Exception as e:
+        flash(f"Gagal mengambil ulasan: {e}", "error")
+        return redirect(url_for('index'))
 
 @app.route('/chatbot', methods=['POST'])
 def chatbot():
