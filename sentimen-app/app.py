@@ -288,18 +288,26 @@ def chatbot():
     data = request.get_json()
     user_message = data.get('message', '').lower()
 
-    # Contoh data dummy dengan respon sederhana
     responses = {
-        "halo": "Halo juga! Ada yang bisa saya bantu terkait analisis sentimen?",
+        "halo": "Halo juga! Ada yang bisa saya bantu terkait analisis sentimen? 😊",
         "apa itu analisis sentimen": "Analisis sentimen adalah proses mengidentifikasi emosi atau opini dalam teks, seperti positif, netral, atau negatif.",
-        "model apa yang digunakan": "Kami menggunakan model Naive Bayes dan juga BERT multilingual dari Hugging Face.",
-        "terima kasih": "Sama-sama! 😊",
-        "siapa kamu": "Saya adalah chatbot untuk membantu analisis sentimen pada data teks."
+        "model apa yang digunakan": "Kami menggunakan dua model: Naive Bayes untuk teks sederhana, dan BERT multilingual dari Hugging Face untuk analisis mendalam.",
+        "bagaimana cara mengunggah file csv": "Silakan klik 'Pilih File' di halaman utama, lalu pilih file CSV yang berisi kolom 'full_text'. Setelah itu klik 'Proses'.",
+        "apa itu fitur proses": "Fitur 'Proses' menganalisis teks ulasan menggunakan model BERT dan mengkategorikan menjadi Positif, Netral, atau Negatif.",
+        "apa itu fitur analyze": "Fitur 'Analyze CSV' digunakan untuk melatih model Naive Bayes dari data yang Anda upload, setelah balancing otomatis.",
+        "apa itu fitur hasil": "Fitur 'Hasil' menampilkan ringkasan performa model, seperti akurasi, precision, recall, dan confusion matrix.",
+        "bagaimana cara download ulasan play store": "Gunakan form 'Download Ulasan', masukkan App ID dari Play Store, lalu klik 'Download'. File CSV akan otomatis dibuat.",
+        "bagaimana cara klasifikasi satu ulasan": "Anda bisa mengetikkan satu ulasan di kolom 'Klasifikasi Manual' dan mendapatkan hasil prediksi sentimennya.",
+        "apa itu fitur chatbot": "Fitur chatbot ini membantu Anda memahami fungsi-fungsi yang tersedia dalam aplikasi analisis sentimen ini.",
+        "terima kasih": "Sama-sama! Jika ada lagi yang ingin ditanyakan, jangan ragu. 😊",
+        "siapa kamu": "Saya adalah chatbot pendamping untuk aplikasi analisis sentimen berbasis Flask yang Anda gunakan."
     }
 
-    response = responses.get(user_message, "Maaf, saya belum mengerti pertanyaan itu. Coba yang lain ya!")
+    # Jika tidak ketemu kata kunci
+    response = responses.get(user_message, "Maaf, saya belum mengerti pertanyaan itu. Coba pertanyaan lain ya!")
 
     return {"response": response}
+
 
 if __name__ == '__main__':
     app.run(debug=True)
