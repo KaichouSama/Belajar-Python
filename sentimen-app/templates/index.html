@@ -169,10 +169,9 @@
   </style>
 </head>
 
-<body>  
+<body>
   <div class="container">
 
-    <!-- 1. Download Ulasan -->
     <div class="section">
       <h2>Download Ulasan dari Play Store</h2>
       <form action="/download_ulasan" method="POST" style="margin-top: 20px;">
@@ -182,10 +181,8 @@
           <button type="submit">Download Ulasan CSV</button>
         </div>
       </form>
-    </div>      
+    </div>
 
-
-    <!-- 2. Upload CSV Tanpa Sentimen -->
     <div class="section">
       <h2>Upload File CSV Tanpa Sentimen</h2>
       <form action="/proses" method="POST" enctype="multipart/form-data">
@@ -195,65 +192,68 @@
       </form>
     </div>
 
-    <!-- 3. Upload CSV Sudah Ada Sentimen -->
     <div class="section">
       <h2>Upload File CSV Sudah Ada Sentimen<br><small>(Analisis Naive Bayes)</small></h2>
       <form action="/analyze_csv" method="POST" enctype="multipart/form-data">
         <label for="analyzecsv">Pilih file CSV:</label>
         <input type="file" name="file" id="analyzecsv" accept=".csv" required />
         <div style="margin-top: 15px; text-align: left; display: flex; align-items: center; gap: 8px;">
-          <input type="checkbox" name="balance_before_split" id="balance_before_split" style="width: 18px; height: 18px;">
+          <input type="checkbox" name="balance_before_split" id="balance_before_split"
+            style="width: 18px; height: 18px;">
           <label for="balance_before_split" style="margin: 0; font-size: 16px;">Balancing sebelum split data</label>
         </div>
         <button type="submit">Analisis dan Tampilkan Hasil</button>
       </form>
     </div>
 
-    <!-- 4. Chatbot -->
     <div class="section">
       <h2>Chatbot Interaktif</h2>
       <div id="chatbox" class="chatbox">
         <div class="bot-message message">Halo! Saya adalah chatbot analisis sentimen. Tanyakan sesuatu!</div>
       </div>
       <div class="input-group">
-        <input type="text" id="chatInput" placeholder="Tulis pertanyaan..." onkeypress="if(event.key==='Enter') kirimChat()" />
+        <input type="text" id="chatInput" placeholder="Tulis pertanyaan..."
+          onkeypress="if(event.key==='Enter') kirimChat()" />
         <button onclick="kirimChat()">Kirim</button>
       </div>
     </div>
 
-    <script>
-      function appendMessage(text, className) {
-        const chatbox = document.getElementById("chatbox");
-        const div = document.createElement("div");
-        div.className = className + " message";
-        div.innerText = text;
-        chatbox.appendChild(div);
-        chatbox.scrollTop = chatbox.scrollHeight;
-      }
+  </div>
 
-      function kirimChat() {
-        const input = document.getElementById("chatInput");
-        const msg = input.value.trim();
-        if (!msg) return;
+  <script>
+    function appendMessage(text, className) {
+      const chatbox = document.getElementById("chatbox");
+      const div = document.createElement("div");
+      div.className = className + " message";
+      div.innerText = text;
+      chatbox.appendChild(div);
+      chatbox.scrollTop = chatbox.scrollHeight;
+    }
 
-        appendMessage(msg, "user-message");
-        input.value = "";
+    function kirimChat() {
+      const input = document.getElementById("chatInput");
+      const msg = input.value.trim();
+      if (!msg) return;
 
-        fetch('/chatbot', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: msg })
+      appendMessage(msg, "user-message");
+      input.value = "";
+
+      fetch('/chatbot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: msg })
+      })
+        .then(res => res.json())
+        .then(data => {
+          appendMessage(data.response, "bot-message");
         })
-          .then(res => res.json())
-          .then(data => {
-            appendMessage(data.response, "bot-message");
-          })
-          .catch(() => {
-            document.getElementById("typingIndicator").style.display = "none";
-            appendMessage("Maaf, terjadi kesalahan.", "bot-message");
-          });
-      }
-    </script>
+        .catch(() => {
+          document.getElementById("typingIndicator").style.display = "none";
+          appendMessage("Maaf, terjadi kesalahan.", "bot-message");
+        });
+    }
+  </script>
+
 </body>
 
 </html>

@@ -30,8 +30,22 @@ def convert_label(label):
     else:
         return 'Positif'
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def index():
+    if request.method == 'POST':
+        file = request.files['file']
+        if file:
+            filename = secure_filename(file.filename)
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(filepath)
+
+            # Lakukan pemrosesan file CSV
+            df = pd.read_csv(filepath)
+            hasil_path = os.path.join('hasil.csv')
+            df.to_csv(hasil_path, index=False)
+
+            return send_file(hasil_path, as_attachment=True)
+
     return render_template('index.html')
 
 @app.route('/proses', methods=['POST'])
