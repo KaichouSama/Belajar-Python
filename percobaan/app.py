@@ -282,6 +282,10 @@ def download_ulasan():
     except Exception as e:
         flash(f"Gagal mengambil ulasan: {e}", "error")
         return redirect(url_for('index'))
+    
+@app.route('/chatbot')
+def chatbot_page():
+    return render_template('chatbot.html')
 
 @app.route('/chatbot', methods=['POST'])
 def chatbot():

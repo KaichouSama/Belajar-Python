@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <title>Hasil Analisis Naive Bayes</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+
+    h2 {
+      color: #2c3e50;
+      margin-top: 30px;
+    }
+
+    ul {
+      list-style-type: disc;
+      padding-left: 20px;
+      margin-top: 10px;
+    }
+
+    li {
+      margin-bottom: 5px;
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+      margin-top: 10px;
+      background-color: #fff;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 600px;
+    }
+
+    th,
+    td {
+      border: 1px solid #ccc;
+      padding: 8px 12px;
+      text-align: center;
+    }
+
+    th {
+      background-color: #ecf0f1;
+    }
+
+    .btn-back {
+      display: inline-block;
+      margin-top: 30px;
+      padding: 10px 20px;
+      background-color: #3498db;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 5px;
+      transition: background-color 0.3s ease;
+    }
+
+    .btn-back:hover {
+      background-color: #2980b9;
+    }
+
+    .sentimen-box {
+      background-color: #eaf6ff;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        margin: 10px;
+      }
+
+      h2 {
+        font-size: 18px;
+      }
+
+      .btn-back {
+        width: 100%;
+        text-align: center;
+      }
+    }
+
+    .section {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      margin-bottom: 30px;
+    }
+
+    .section h2 {
+      color: #2c3e50;
+      margin-bottom: 15px;
+    }
+
+    .section label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+    }
+
+    .section input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    .section .submit-btn {
+      padding: 10px 20px;
+      background-color: #3498db;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .section .submit-btn:hover {
+      background-color: #2980b9;
+    }
+
+    .chart-container {
+      background-color: #fff;
+      padding: 20px;
+      margin-top: 20px;
+      margin-bottom: 40px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+      text-align: center;
+    }
+
+    .chart-container canvas {
+      max-width: 600px;
+      margin: auto;
+    }
+
+    .chart-actions {
+      margin-top: 10px;
+    }
+
+    .chart-actions button {
+      margin: 5px;
+      padding: 6px 12px;
+      font-size: 14px;
+      background-color: #3498db;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .chart-actions button:hover {
+      background-color: #2980b9;
+    }
+
+    .confusion-cell {
+      color: white;
+      font-weight: bold;
+    }
+
+    .confusion-low {
+      background-color: rgba(52, 152, 219, 0.2);
+    }
+
+    .confusion-mid {
+      background-color: rgba(52, 152, 219, 0.5);
+    }
+
+    .confusion-high {
+      background-color: rgba(52, 152, 219, 0.8);
+    }
+
+  </style>
+</head>
+
+<body>
+  <section class="section">
+    <h2>Klasifikasi Ulasan Manual</h2>
+    <form action="/klasifikasi" method="POST">
+      <label for="ulasan">Masukkan ulasan:</label>
+      <input type="text" name="ulasan" id="ulasan" placeholder="Contoh: Aplikasi ini sangat membantu!" required
+        value="{{ request.form.ulasan or '' }}" />
+      <button type="submit" class="submit-btn">Klasifikasikan</button>
+    </form>
+  </section>
+
+  {% if hasil_klasifikasi %}
+  <div class="sentimen-box">
+    Hasil Sentimen: {{ hasil_klasifikasi }}
+  </div>
+  {% endif %}
+
+  <div class="chart-container">
+    <h2>Distribusi Awal:</h2>
+    <canvas id="chartDistribusiAwal"></canvas>
+    <div class="chart-actions">
+      <button onclick="switchChartType('awal')">Ganti Tipe</button>
+      <button onclick="downloadChart('chartDistribusiAwal', 'distribusi_awal')">Unduh Gambar</button>
+    </div>
+  </div>
+
+  <div class="chart-container">
+    <h2>Distribusi Setelah Balancing:</h2>
+    <canvas id="chartDistribusiBalanced"></canvas>
+    <div class="chart-actions">
+      <button onclick="switchChartType('balanced')">Ganti Tipe</button>
+      <button onclick="downloadChart('chartDistribusiBalanced', 'distribusi_balanced')">Unduh Gambar</button>
+    </div>
+  </div>
+
+
+  <h2>Akurasi: {{ "%.2f"|format(akurasi * 100) }}%</h2>
+
+  <h2>Classification Report:</h2>
+  <div class="table-wrapper">
+    <table>
+      <tr>
+        <th>Label</th>
+        <th>Precision</th>
+        <th>Recall</th>
+        <th>F1-score</th>
+        <th>Support</th>
+      </tr>
+      {% for label, metrics in report.items() if label not in ['accuracy', 'macro avg', 'weighted avg'] %}
+      <tr>
+        <td>{{ label }}</td>
+        <td>{{ "%.2f"|format(metrics['precision']) }}</td>
+        <td>{{ "%.2f"|format(metrics['recall']) }}</td>
+        <td>{{ "%.2f"|format(metrics['f1-score']) }}</td>
+        <td>{{ metrics['support'] }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+
+  {% set keys = report.keys()|list %}
+  <h2>Confusion Matrix:</h2>
+  <div class="table-wrapper">
+    <table>
+      <tr>
+        <th>Actual \ Predicted</th>
+        {% for i in range(matrix|length) %}
+        <th>{{ keys[i] }}</th>
+        {% endfor %}
+      </tr>
+      {% set max_val = matrix | map('max') | max %}
+      {% for i in range(matrix|length) %}
+      <tr>
+        <th>{{ keys[i] }}</th>
+        {% for j in range(matrix[i]|length) %}
+        {% set val = matrix[i][j] %}
+        {% set ratio = (val / max_val) if max_val else 0 %}
+        {% if ratio < 0.3 %} {% set color_class='confusion-low' %} {% elif ratio < 0.7 %} {% set
+          color_class='confusion-mid' %} {% else %} {% set color_class='confusion-high' %} {% endif %} <td
+          class="confusion-cell {{ color_class }}">{{ val }}</td>
+          {% endfor %}
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+
+
+  <h2>Hasil Prediksi:</h2>
+  <div class="table-wrapper">
+    <table>
+      <tr>
+        <th>Text</th>
+        <th>Actual</th>
+        <th>Predicted</th>
+      </tr>
+      {% for row in hasil %}
+      <tr>
+        <td>{{ row['full_text'] }}</td>
+        <td>{{ row['actual'] }}</td>
+        <td>{{ row['predicted'] }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+
+  <div style="text-align: center; margin-top: 20px;">
+    {% if page > 1 %}
+    <a href="{{ url_for('hasil', page=page - 1) }}" class="btn-back">← Prev</a>
+    {% else %}
+    <span class="btn-back" style="background-color: #ccc; pointer-events: none;">← Prev</span>
+    {% endif %}
+
+    <span style="margin: 0 10px; font-weight: bold;">Halaman {{ page }} dari {{ total_pages }}</span>
+
+    {% if page < total_pages %} <a href="{{ url_for('hasil', page=page + 1) }}" class="btn-back">Next →</a>
+      {% else %}
+      <span class="btn-back" style="background-color: #ccc; pointer-events: none;">Next →</span>
+      {% endif %}
+  </div>
+
+  <div style="text-align: center;">
+    <form action="{{ url_for('hasil') }}" method="get">
+      <label for="page-jump">Ke Halaman:</label>
+      <input type="number" name="page" min="1" max="{{ total_pages }}" value="{{ page }}" id="page-jump" />
+      <button type="submit" class="btn-back">Go</button>
+    </form>
+  </div>
+
+  <a href="/" class="btn-back">← Kembali</a>
+
+  <script>
+    const distribusiAwal = JSON.parse('{{ distribusi_awal | tojson | safe }}');
+    const distribusiBalanced = JSON.parse('{{ distribusi_balanced | tojson | safe }}');
+
+    let typeAwal = 'bar';
+    let typeBalanced = 'bar';
+
+    const ctxAwal = document.getElementById('chartDistribusiAwal').getContext('2d');
+    const ctxBalanced = document.getElementById('chartDistribusiBalanced').getContext('2d');
+
+    function getColors(labels) {
+      return labels.map(label => {
+        const lower = label.toLowerCase();
+        if (lower.includes('positif')) return '#2ecc71'; // Hijau
+        if (lower.includes('netral')) return '#f1c40f';  // Kuning
+        if (lower.includes('negatif')) return '#e74c3c'; // Merah
+        return '#95a5a6'; // Default abu
+      });
+    }
+
+    function getOptions(type) {
+      return {
+        responsive: true,
+        plugins: {
+          legend: { display: type === 'pie' },
+          tooltip: {
+            callbacks: {
+              label: function (tooltipItem) {
+                const total = tooltipItem.dataset.data.reduce((a, b) => a + b, 0);
+                const value = tooltipItem.raw;
+                const percent = ((value / total) * 100).toFixed(1);
+                return `${tooltipItem.label}: ${value} (${percent}%)`;
+              }
+            }
+          }
+        }
+      };
+    }
+
+    let chartAwal = new Chart(ctxAwal, {
+      type: typeAwal,
+      data: {
+        labels: Object.keys(distribusiAwal),
+        datasets: [{
+          label: 'Jumlah',
+          data: Object.values(distribusiAwal),
+          backgroundColor: getColors(Object.keys(distribusiAwal))
+        }]
+      },
+      options: getOptions(typeAwal)
+    });
+
+    let chartBalanced = new Chart(ctxBalanced, {
+      type: typeBalanced,
+      data: {
+        labels: Object.keys(distribusiBalanced),
+        datasets: [{
+          label: 'Jumlah',
+          data: Object.values(distribusiBalanced),
+          backgroundColor: getColors(Object.keys(distribusiBalanced))
+        }]
+      },
+      options: getOptions(typeBalanced)
+    });
+
+    function switchChartType(chart) {
+      if (chart === 'awal') {
+        typeAwal = typeAwal === 'bar' ? 'pie' : 'bar';
+        chartAwal.destroy();
+        chartAwal = new Chart(ctxAwal, {
+          type: typeAwal,
+          data: {
+            labels: Object.keys(distribusiAwal),
+            datasets: [{
+              label: 'Jumlah',
+              data: Object.values(distribusiAwal),
+              backgroundColor: getColors(Object.keys(distribusiAwal))
+            }]
+          },
+          options: getOptions(typeAwal)
+        });
+      } else {
+        typeBalanced = typeBalanced === 'bar' ? 'pie' : 'bar';
+        chartBalanced.destroy();
+        chartBalanced = new Chart(ctxBalanced, {
+          type: typeBalanced,
+          data: {
+            labels: Object.keys(distribusiBalanced),
+            datasets: [{
+              label: 'Jumlah',
+              data: Object.values(distribusiBalanced),
+              backgroundColor: getColors(Object.keys(distribusiBalanced))
+            }]
+          },
+          options: getOptions(typeBalanced)
+        });
+      }
+    }
+
+    function downloadChart(canvasId, filename) {
+      const canvas = document.getElementById(canvasId);
+      const link = document.createElement('a');
+      link.download = filename + '.png';
+      link.href = canvas.toDataURL();
+      link.click();
+    }
+  </script>
+
+</body>
+
+</html>
