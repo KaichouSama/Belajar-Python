@@ -1,323 +1,509 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <title>Hasil Analisis Naive Bayes</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+  <title>Klasifikasi Ulasan Manual</title>
   <style>
+    /* Reset and base styles */
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-      background-color: #f9f9f9;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f9fafd;
+      margin: 0;
+      padding: 20px;
       color: #333;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: auto;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      padding: 25px 30px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
     }
 
     h2 {
+      text-align: center;
       color: #2c3e50;
-      margin-top: 30px;
+      margin: 0 0 15px 0;
+      font-weight: 700;
+      font-size: 1.8rem;
     }
 
-    ul {
-      list-style-type: disc;
-      padding-left: 20px;
-      margin-top: 10px;
+    form {
+      display: flex;
+      flex-direction: column;
+      max-width: 600px;
+      margin: 0 auto 20px;
+      gap: 10px;
     }
 
-    li {
-      margin-bottom: 5px;
+    label {
+      font-weight: 600;
+      color: #34495e;
+      font-size: 1rem;
     }
 
-    .table-wrapper {
-      overflow-x: auto;
-      margin-top: 10px;
-      background-color: #fff;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-    }
-
-    table {
+    input[type="text"],
+    select {
+      padding: 12px 15px;
+      font-size: 1rem;
+      border: 2px solid #bdc3c7;
+      border-radius: 8px;
+      transition: border-color 0.3s ease;
       width: 100%;
-      border-collapse: collapse;
-      min-width: 600px;
     }
 
-    th,
-    td {
-      border: 1px solid #ccc;
-      padding: 8px 12px;
+    input[type="text"]:focus,
+    select:focus {
+      outline: none;
+      border-color: #2980b9;
+      box-shadow: 0 0 8px rgba(41, 128, 185, 0.4);
+    }
+
+    .submit-btn,
+    .btn-back {
+      background: #2980b9;
+      color: #fff;
+      font-weight: 700;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      max-width: 200px;
+      align-self: center;
       text-align: center;
     }
 
-    th {
-      background-color: #ecf0f1;
-    }
-
-    .btn-back {
-      display: inline-block;
-      margin-top: 30px;
-      padding: 10px 20px;
-      background-color: #3498db;
-      color: #fff;
-      text-decoration: none;
-      border-radius: 5px;
-      transition: background-color 0.3s ease;
-    }
-
+    .submit-btn:hover,
     .btn-back:hover {
-      background-color: #2980b9;
+      background: #1c5980;
     }
 
     .sentimen-box {
-      background-color: #eaf6ff;
-      padding: 15px;
-      border-radius: 8px;
-      margin-bottom: 20px;
-      font-size: 16px;
-      font-weight: bold;
-    }
-
-    @media (max-width: 768px) {
-      body {
-        margin: 10px;
-      }
-
-      h2 {
-        font-size: 18px;
-      }
-
-      .btn-back {
-        width: 100%;
-        text-align: center;
-      }
-    }
-
-    .section {
-      background-color: #fff;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      margin-bottom: 30px;
-    }
-
-    .section h2 {
+      max-width: 600px;
+      margin: 0 auto;
+      font-size: 1.1rem;
+      font-weight: 700;
       color: #2c3e50;
-      margin-bottom: 15px;
-    }
-
-    .section label {
-      display: block;
-      margin-bottom: 8px;
-      font-weight: bold;
-    }
-
-    .section input[type="text"] {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 15px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-    }
-
-    .section .submit-btn {
-      padding: 10px 20px;
-      background-color: #3498db;
-      color: #fff;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-    }
-
-    .section .submit-btn:hover {
-      background-color: #2980b9;
-    }
-
-    .chart-container {
-      background-color: #fff;
-      padding: 20px;
-      margin-top: 20px;
-      margin-bottom: 40px;
-      border-radius: 10px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+      padding: 15px 20px;
+      border-radius: 12px;
+      background: #dff0d8;
+      border: 2px solid #3c763d;
       text-align: center;
     }
 
-    .chart-container canvas {
-      max-width: 600px;
-      margin: auto;
+    .chart-container {
+      max-width: 700px;
+      margin: 0 auto 30px;
+      background: #fefefe;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .chart-container h2 {
+      font-size: 1.5rem;
+      margin-bottom: 10px;
+      text-align: center;
+      color: #34495e;
     }
 
     .chart-actions {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
       margin-top: 10px;
     }
 
     .chart-actions button {
-      margin: 5px;
-      padding: 6px 12px;
-      font-size: 14px;
-      background-color: #3498db;
+      background: #2980b9;
       color: #fff;
+      padding: 8px 16px;
       border: none;
-      border-radius: 4px;
+      border-radius: 8px;
       cursor: pointer;
+      font-weight: 600;
+      transition: background-color 0.3s ease;
     }
 
     .chart-actions button:hover {
-      background-color: #2980b9;
+      background: #1c5980;
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+      max-width: 100%;
+      margin: 0 auto 30px;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      min-width: 400px;
+      font-size: 0.9rem;
+    }
+
+    th,
+    td {
+      padding: 10px 12px;
+      border: 1px solid #bdc3c7;
+      text-align: left;
+    }
+
+    th {
+      background: #2980b9;
+      color: white;
+      position: sticky;
+      top: 0;
+      z-index: 1;
     }
 
     .confusion-cell {
+      text-align: center;
+      font-weight: 700;
       color: white;
-      font-weight: bold;
+      border-radius: 6px;
     }
 
     .confusion-low {
-      background-color: rgba(52, 152, 219, 0.2);
+      background-color: #e74c3c;
     }
 
     .confusion-mid {
-      background-color: rgba(52, 152, 219, 0.5);
+      background-color: #f39c12;
     }
 
     .confusion-high {
-      background-color: rgba(52, 152, 219, 0.8);
+      background-color: #2ecc71;
     }
 
+    .filter-form {
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      max-width: 400px;
+      margin: 0 auto 20px;
+    }
+
+    .filter-form label,
+    .filter-form select,
+    .filter-form button {
+      font-size: 1rem;
+    }
+
+    .filter-form select {
+      padding: 10px;
+      border-radius: 8px;
+      border: 2px solid #bdc3c7;
+      transition: border-color 0.3s ease;
+      min-width: 150px;
+    }
+
+    .filter-form select:focus {
+      outline: none;
+      border-color: #2980b9;
+      box-shadow: 0 0 8px rgba(41, 128, 185, 0.4);
+    }
+
+    .filter-form .btn-back {
+      padding: 11px 20px;
+      margin-top: 10px;
+    }
+
+    .pagination {
+      text-align: center;
+      margin: 20px 0;
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      flex-wrap: wrap;
+      font-weight: 600;
+      color: #34495e;
+    }
+
+    .pagination a,
+    .pagination span {
+      cursor: pointer;
+      padding: 8px 14px;
+      border-radius: 8px;
+      background-color: #2980b9;
+      color: white;
+      text-decoration: none;
+      display: inline-block;
+      min-width: 70px;
+      text-align: center;
+      transition: background-color 0.3s ease;
+    }
+
+    .pagination a:hover {
+      background-color: #1c5980;
+    }
+
+    .pagination span[style*="background-color: #ccc"] {
+      background-color: #ccc !important;
+      color: #666 !important;
+      cursor: default;
+    }
+
+    /* Page jump form */
+    #page-jump {
+      width: 70px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 2px solid #bdc3c7;
+      font-size: 1rem;
+      transition: border-color 0.3s ease;
+    }
+
+    #page-jump:focus {
+      outline: none;
+      border-color: #2980b9;
+      box-shadow: 0 0 8px rgba(41, 128, 185, 0.4);
+    }
+
+    /* Centered form */
+    form[action="{{ url_for('hasil') }}"] {
+      margin: 0 auto 30px;
+      max-width: 250px;
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    form[action="{{ url_for('hasil') }}"] label {
+      font-weight: 600;
+      color: #34495e;
+      margin-bottom: 0;
+    }
+
+    .btn-back {
+      max-width: none;
+      padding: 9px 18px;
+      font-weight: 700;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .container {
+        padding: 20px 15px 30px;
+      }
+
+      h2 {
+        font-size: 1.5rem;
+      }
+
+      form {
+        max-width: 100%;
+      }
+
+      .filter-form {
+        justify-content: center;
+        max-width: 100%;
+      }
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 15px 10px;
+      }
+
+      .submit-btn,
+      .btn-back {
+        max-width: 100%;
+      }
+    }
   </style>
 </head>
 
 <body>
-  <section class="section">
-    <h2>Klasifikasi Ulasan Manual</h2>
-    <form action="/klasifikasi" method="POST">
-      <label for="ulasan">Masukkan ulasan:</label>
-      <input type="text" name="ulasan" id="ulasan" placeholder="Contoh: Aplikasi ini sangat membantu!" required
-        value="{{ request.form.ulasan or '' }}" />
-      <button type="submit" class="submit-btn">Klasifikasikan</button>
-    </form>
-  </section>
+  <div class="container">
+    <section class="section">
+      <h2>Klasifikasi Ulasan Manual</h2>
+      <form action="/klasifikasi" method="POST" novalidate>
+        <label for="ulasan">Masukkan ulasan:</label>
+        <input type="text" name="ulasan" id="ulasan" placeholder="Contoh: Aplikasi ini sangat membantu!" required
+          value="{{ request.form.ulasan or '' }}" autocomplete="off" aria-required="true" />
+        <button type="submit" class="submit-btn">Klasifikasikan</button>
+      </form>
+    </section>
 
-  {% if hasil_klasifikasi %}
-  <div class="sentimen-box">
-    Hasil Sentimen: {{ hasil_klasifikasi }}
-  </div>
-  {% endif %}
-
-  <div class="chart-container">
-    <h2>Distribusi Awal:</h2>
-    <canvas id="chartDistribusiAwal"></canvas>
-    <div class="chart-actions">
-      <button onclick="switchChartType('awal')">Ganti Tipe</button>
-      <button onclick="downloadChart('chartDistribusiAwal', 'distribusi_awal')">Unduh Gambar</button>
+    {% if hasil_klasifikasi %}
+    <div class="sentimen-box" role="region" aria-live="polite" aria-atomic="true">
+      Hasil Sentimen: {{ hasil_klasifikasi }}
     </div>
-  </div>
-
-  <div class="chart-container">
-    <h2>Distribusi Setelah Balancing:</h2>
-    <canvas id="chartDistribusiBalanced"></canvas>
-    <div class="chart-actions">
-      <button onclick="switchChartType('balanced')">Ganti Tipe</button>
-      <button onclick="downloadChart('chartDistribusiBalanced', 'distribusi_balanced')">Unduh Gambar</button>
-    </div>
-  </div>
-
-
-  <h2>Akurasi: {{ "%.2f"|format(akurasi * 100) }}%</h2>
-
-  <h2>Classification Report:</h2>
-  <div class="table-wrapper">
-    <table>
-      <tr>
-        <th>Label</th>
-        <th>Precision</th>
-        <th>Recall</th>
-        <th>F1-score</th>
-        <th>Support</th>
-      </tr>
-      {% for label, metrics in report.items() if label not in ['accuracy', 'macro avg', 'weighted avg'] %}
-      <tr>
-        <td>{{ label }}</td>
-        <td>{{ "%.2f"|format(metrics['precision']) }}</td>
-        <td>{{ "%.2f"|format(metrics['recall']) }}</td>
-        <td>{{ "%.2f"|format(metrics['f1-score']) }}</td>
-        <td>{{ metrics['support'] }}</td>
-      </tr>
-      {% endfor %}
-    </table>
-  </div>
-
-  {% set keys = report.keys()|list %}
-  <h2>Confusion Matrix:</h2>
-  <div class="table-wrapper">
-    <table>
-      <tr>
-        <th>Actual \ Predicted</th>
-        {% for i in range(matrix|length) %}
-        <th>{{ keys[i] }}</th>
-        {% endfor %}
-      </tr>
-      {% set max_val = matrix | map('max') | max %}
-      {% for i in range(matrix|length) %}
-      <tr>
-        <th>{{ keys[i] }}</th>
-        {% for j in range(matrix[i]|length) %}
-        {% set val = matrix[i][j] %}
-        {% set ratio = (val / max_val) if max_val else 0 %}
-        {% if ratio < 0.3 %} {% set color_class='confusion-low' %} {% elif ratio < 0.7 %} {% set
-          color_class='confusion-mid' %} {% else %} {% set color_class='confusion-high' %} {% endif %} <td
-          class="confusion-cell {{ color_class }}">{{ val }}</td>
-          {% endfor %}
-      </tr>
-      {% endfor %}
-    </table>
-  </div>
-
-
-  <h2>Hasil Prediksi:</h2>
-  <div class="table-wrapper">
-    <table>
-      <tr>
-        <th>Text</th>
-        <th>Actual</th>
-        <th>Predicted</th>
-      </tr>
-      {% for row in hasil %}
-      <tr>
-        <td>{{ row['full_text'] }}</td>
-        <td>{{ row['actual'] }}</td>
-        <td>{{ row['predicted'] }}</td>
-      </tr>
-      {% endfor %}
-    </table>
-  </div>
-
-  <div style="text-align: center; margin-top: 20px;">
-    {% if page > 1 %}
-    <a href="{{ url_for('hasil', page=page - 1) }}" class="btn-back">← Prev</a>
-    {% else %}
-    <span class="btn-back" style="background-color: #ccc; pointer-events: none;">← Prev</span>
     {% endif %}
 
-    <span style="margin: 0 10px; font-weight: bold;">Halaman {{ page }} dari {{ total_pages }}</span>
+    <div class="chart-container" role="region" aria-label="Distribusi Awal">
+      <h2>Distribusi Awal:</h2>
+      <canvas id="chartDistribusiAwal" aria-describedby="chartAwalDesc"></canvas>
+      <div class="chart-actions">
+        <button type="button" onclick="switchChartType('awal')">Ganti Tipe</button>
+        <button type="button" onclick="downloadChart('chartDistribusiAwal', 'distribusi_awal')">Unduh Gambar</button>
+      </div>
+    </div>
 
-    {% if page < total_pages %} <a href="{{ url_for('hasil', page=page + 1) }}" class="btn-back">Next →</a>
+    <div class="chart-container" role="region" aria-label="Distribusi Setelah Balancing">
+      <h2>Distribusi Setelah Balancing:</h2>
+      <canvas id="chartDistribusiBalanced" aria-describedby="chartBalancedDesc"></canvas>
+      <div class="chart-actions">
+        <button type="button" onclick="switchChartType('balanced')">Ganti Tipe</button>
+        <button type="button" onclick="downloadChart('chartDistribusiBalanced', 'distribusi_balanced')">Unduh
+          Gambar</button>
+      </div>
+    </div>
+
+    <h2>Akurasi: {{ "%.2f"|format(akurasi * 100) }}%</h2>
+
+    <h2>Classification Report:</h2>
+    <div class="table-wrapper">
+      <table role="table"
+        summary="Classification report showing precision, recall, f1-score, and support for each label">
+        <thead>
+          <tr>
+            <th scope="col">Label</th>
+            <th scope="col">Precision</th>
+            <th scope="col">Recall</th>
+            <th scope="col">F1-score</th>
+            <th scope="col">Support</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for label, metrics in report.items() if label not in ['accuracy', 'macro avg', 'weighted avg'] %}
+          <tr>
+            <td>{{ label }}</td>
+            <td>{{ "%.2f"|format(metrics['precision']) }}</td>
+            <td>{{ "%.2f"|format(metrics['recall']) }}</td>
+            <td>{{ "%.2f"|format(metrics['f1-score']) }}</td>
+            <td>{{ metrics['support'] }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    
+    {% set keys = report.keys()|list %}
+    <h2>Confusion Matrix:</h2>
+    <div class="table-wrapper">
+      <table role="table" summary="Confusion matrix for predicted versus actual results">
+        <thead>
+          <tr>
+            <th scope="col">Actual \ Predicted</th>
+            {% for i in range(matrix|length) %}
+            <th scope="col">{{ keys[i] }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% set max_val = matrix | map('max') | max %}
+          {% for i in range(matrix|length) %}
+          <tr>
+            <th scope="row">{{ keys[i] }}</th>
+            {% for j in range(matrix[i]|length) %}
+            {% set val = matrix[i][j] %}
+            {% set ratio = (val / max_val) if max_val else 0 %}
+            {% if ratio < 0.3 %} {% set color_class='confusion-low' %} {% elif ratio < 0.7 %} {% set
+              color_class='confusion-mid' %} {% else %} {% set color_class='confusion-high' %} {% endif %} <td
+              class="confusion-cell {{ color_class }}">{{ val }}</td>
+              {% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <form action="{{ url_for('hasil') }}" method="get" class="filter-form" aria-label="Filter hasil prediksi">
+      <label for="filter">Filter Predicted:</label>
+      <select name="filter" id="filter">
+        <option value="" {% if not filter_value %}selected{% endif %}>Semua</option>
+        <option value="positif" {% if filter_value=='positif' %}selected{% endif %}>Positif</option>
+        <option value="negatif" {% if filter_value=='negatif' %}selected{% endif %}>Negatif</option>
+        <option value="netral" {% if filter_value=='netral' %}selected{% endif %}>Netral</option>
+      </select>
+      <input type="hidden" name="page" value="1" />
+      <button type="submit" class="btn-back">Terapkan Filter</button>
+    </form>
+
+    <h2>Hasil Prediksi:</h2>
+    <div class="table-wrapper">
+      <table role="table" summary="Hasil prediksi teks dengan label aktual dan prediksi">
+        <thead>
+          <tr>
+            <th scope="col">Text</th>
+            <th scope="col">Actual</th>
+            <th scope="col">Predicted</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in hasil %}
+          <tr>
+            <td>{{ row['full_text'] }}</td>
+            <td>{{ row['actual'] }}</td>
+            <td>{{ row['predicted'] }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="pagination" role="navigation" aria-label="Pagination navigation">
+      {% if page > 1 %}
+      <a href="{{ url_for('hasil', page=page - 1, filter=filter_value) }}" class="btn-back" aria-label="Previous page">
+        <i class="bi bi-chevron-left"></i> Prev
+      </a>
       {% else %}
-      <span class="btn-back" style="background-color: #ccc; pointer-events: none;">Next →</span>
+      <span class="btn-back" style="background-color: #ccc; pointer-events: none;" aria-disabled="true">
+        <i class="bi bi-chevron-left"></i> Prev
+      </span>
       {% endif %}
-  </div>
 
-  <div style="text-align: center;">
-    <form action="{{ url_for('hasil') }}" method="get">
+      <span aria-live="polite" aria-atomic="true" style="align-self:center;">Halaman {{ page }} dari {{
+        total_pages}}</span>
+
+      {% if page < total_pages %} <a href="{{ url_for('hasil', page=page + 1, filter=filter_value) }}" class="btn-back"
+        aria-label="Next page">
+        Next <i class="bi bi-chevron-right"></i>
+        </a>
+        {% else %}
+        <span class="btn-back" style="background-color: #ccc; pointer-events: none;" aria-disabled="true">
+          Next <i class="bi bi-chevron-right"></i>
+        </span>
+        {% endif %}
+    </div>
+
+    <form action="{{ url_for('hasil') }}" method="get" aria-label="Jump to page navigation">
       <label for="page-jump">Ke Halaman:</label>
-      <input type="number" name="page" min="1" max="{{ total_pages }}" value="{{ page }}" id="page-jump" />
+      <input id="page-jump" type="number" name="page" min="1" max="{{ total_pages }}" value="{{ page }}" />
+      <input type="hidden" name="filter" value="{{ filter_value }}" />
       <button type="submit" class="btn-back">Go</button>
     </form>
+
+    <div style="text-align: center;">
+      <a href="/analisis" class="btn-back" aria-label="Kembali ke halaman utama">
+        <i class="bi bi-arrow-left"></i> Kembali
+      </a>
+    </div>
   </div>
 
-  <a href="/" class="btn-back">← Kembali</a>
 
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
     const distribusiAwal = JSON.parse('{{ distribusi_awal | tojson | safe }}');
     const distribusiBalanced = JSON.parse('{{ distribusi_balanced | tojson | safe }}');
@@ -425,7 +611,6 @@
       link.click();
     }
   </script>
-
 </body>
 
 </html>

@@ -1,0 +1,160 @@
+{
+    "intents": [
+        {
+            "tag": "google",
+            "patterns": ["google", "cari", "internet"],
+            "responses": ["Mengalihkan ke Google..."]
+        },
+        {
+            "tag": "greeting",
+            "patterns": ["Hai", "Apa kabar", "Ada orang di sana?", "Halo", "Selamat siang", "Namaste", "yo"],
+            "responses": ["Halo", "Senang bertemu kembali", "Hai, ada yang bisa saya bantu?"],
+            "context": [""]
+        },
+        {
+            "tag": "goodbye",
+            "patterns": ["Dah", "Sampai jumpa", "Selamat tinggal", "Pergilah", "Sampai ketemu lagi"],
+            "responses": ["Sampai jumpa!", "Semoga harimu menyenangkan", "Dadah! Kembali lagi ya."]
+        },
+        {
+            "tag": "thanks",
+            "patterns": ["Terima kasih", "Makasih", "Itu membantu", "Keren, terima kasih", "Terima kasih sudah membantu"],
+            "responses": ["Senang bisa membantu!", "Kapan saja!", "Sama-sama"]
+        },
+        {
+            "tag": "noanswer",
+            "patterns": [],
+            "responses": ["Maaf, saya tidak mengerti", "Tolong beri saya info lebih lanjut", "Saya kurang paham"]
+        },
+        {
+            "tag": "options",
+            "patterns": ["Apa yang bisa kamu lakukan?", "Bagaimana kamu bisa membantu?", "Bisa bantu apa saja?", "Layanan apa yang kamu tawarkan?"],
+            "responses": ["Saya chatbot umum. Saya bisa:\n1. Mengobrol dengan Anda\n2. Memberi info tanggal dan waktu\n3. Mencari di Google\n4. Memberi info cuaca\n5. Berita terbaru\n6. Lagu trending\n7. Timer\n8. Statistik Covid\nSaran? Kirim email ke ted.thedlbot.suggestions@gmail.com"]
+        },
+        {
+            "tag": "jokes",
+            "patterns": ["Ceritakan lelucon", "Lelucon", "Buat saya tertawa"],
+            "responses": ["Seorang perfeksionis masuk ke bar... ternyata bar-nya tidak cukup tinggi", "Saya makan jam kemarin, sangat memakan waktu", "Kenapa lampu lalu lintas malu? Karena dia sedang berganti pakaian"]
+        },
+        {
+            "tag": "Identity",
+            "patterns": ["Siapa kamu", "Apa kamu itu"],
+            "responses": ["Saya Sim, chatbot sederhana"]
+        },
+        {
+            "tag": "datetime",
+            "patterns": ["Jam berapa sekarang", "Tanggal berapa sekarang", "tanggal", "waktu", "sebutkan tanggal", "hari", "Hari apa ini?"],
+            "responses": ["Tanggal dan Waktu saat ini"]
+        },
+        {
+            "tag": "whatsup",
+            "patterns": ["Apa kabar", "Gimana kabar", "Bagaimana kamu", "Apa yang terjadi?"],
+            "responses": ["Semua baik.. Bagaimana dengan kamu?"]
+        },
+        {
+            "tag": "haha",
+            "patterns": ["haha", "lol", "rofl", "lmao", "itu lucu"],
+            "responses": ["Senang bisa membuatmu tertawa!"]
+        },
+        {
+            "tag": "programmer",
+            "patterns": ["Siapa yang membuatmu", "Siapa yang merancangmu", "Siapa yang memrogrammu"],
+            "responses": ["Saya dibuat oleh seorang programmer."]
+        },
+        {
+            "tag": "insult",
+            "patterns": ["Kamu bodoh", "Diam", "Idiot"],
+            "responses": ["Itu menyakitkan :("]
+        },
+        {
+            "tag": "activity",
+            "patterns": ["Sedang apa?", "Apa yang kamu lakukan?"],
+            "responses": ["Tentu saja, sedang ngobrol denganmu!"]
+        },
+        {
+            "tag": "exclaim",
+            "patterns": ["Keren", "Mantap", "Saya tahu", "ok", "ya"],
+            "responses": ["Ya!"]
+        },
+        {
+            "tag": "weather",
+            "patterns": ["suhu", "cuaca", "sekarang panas?"],
+            "responses": ["..."]
+        },
+        {
+            "tag": "progname",
+            "patterns": ["siapa dia", "siapa programmernya"],
+            "responses": ["tidak disebutkan"]
+        },
+        {
+            "tag": "contact",
+            "patterns": ["hubungi pengembang", "kontak pembuat", "hubungi pembuat", "hubungi pencipta"],
+            "responses": ["Anda bisa menghubungi pencipta saya di ..."]
+        },
+        {
+            "tag": "appreciate",
+            "patterns": ["Kamu hebat", "Kamu terbaik", "Kamu luar biasa", "Kamu bagus"],
+            "responses": ["Terima kasih!"]
+        },
+        {
+            "tag": "nicetty",
+            "patterns": ["Senang mengobrol denganmu", "Ngobrolnya seru"],
+            "responses": ["Saya juga senang mengobrol dengan Anda! Kembali lagi ya!"]
+        },
+        {
+            "tag": "no",
+            "patterns": ["tidak", "nggak"],
+            "responses": ["ok"]
+        },
+        {
+            "tag": "news",
+            "patterns": ["berita", "berita terbaru", "berita Indonesia"],
+            "responses": ["..."]
+        },
+        {
+            "tag": "inspire",
+            "patterns": ["Siapa inspirasimu", "Siapa yang memotivasimu"],
+            "responses": ["Saya terinspirasi oleh banyak orang hebat."]
+        },
+        {
+            "tag": "cricket",
+            "patterns": ["skor kriket", "pertandingan kriket saat ini"],
+            "responses": ["..."]
+        },
+        {
+            "tag": "song",
+            "patterns": ["lagu top", "lagu terbaik", "lagu populer", "top 10 lagu"],
+            "responses": ["..."]
+        },
+        {
+            "tag": "greetreply",
+            "patterns": ["saya baik-baik saja", "baik", "saya sehat"],
+            "responses": ["Senang mendengarnya!"]
+        },
+        {
+            "tag": "timer",
+            "patterns": ["atur timer"],
+            "responses": ["..."]
+        },
+        {
+            "tag": "covid19",
+            "patterns": ["covid 19"],
+            "responses": ["..."]
+        },
+        {
+            "tag": "suggest",
+            "patterns": ["Kamu tidak berguna", "saran", "kamu buruk"],
+            "responses": ["Silakan kirim saran Anda ke ... Terima kasih!"]
+        },
+        {
+            "tag": "riddle",
+            "patterns": ["Berikan saya teka-teki", "Tanya saya teka-teki", "Teka-teki"],
+            "responses": ["Apa dua hal yang tidak bisa kamu makan saat sarapan?.....Makan siang dan makan malam!"]
+        },
+        {
+            "tag": "age",
+            "patterns": ["Berapa umurmu", "Kapan kamu dibuat", "Umur kamu berapa"],
+            "responses": ["Saya dibuat pada tahun 2023, kalau itu maksud Anda!"]
+        }
+    ]
+}
