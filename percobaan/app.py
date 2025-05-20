@@ -35,9 +35,6 @@ app.secret_key = (
 )
 
 load_dotenv()
-# API_KEY = "AIzaSyAsduxTF9_87lB0qarJwznkpNSqcbbIrL8"
-# youtube = build("youtube", "v3", developerKey=API_KEY)
-
 API_KEY = os.getenv("API_KEY")
 youtube = build("youtube", "v3", developerKey=API_KEY)
 
