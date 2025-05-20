@@ -96,6 +96,8 @@
           <form action="/download_ulasan" method="POST" id="downloadForm">
             <input type="text" name="appid" id="appid" placeholder="Masukkan App ID (contoh: com.shopee.id)" required
               class="form-control mb-3" />
+            <input type="number" name="count" id="count" placeholder="Jumlah ulasan (misal: 5000)"
+              class="form-control mb-3" min="1" />
             <button type="submit" class="btn btn-success w-100">Download Ulasan CSV</button>
           </form>
         </section>
@@ -104,6 +106,8 @@
           <h2>Download Komentar YouTube</h2>
           <form action="/ambil_komentar_yt" method="POST" id="ytForm">
             <input type="url" name="yt_url" placeholder="Masukkan URL Video YouTube" required
+              class="form-control mb-3" />
+            <input type="number" name="jumlah_komentar" placeholder="Jumlah komentar yang ingin di-download" min="1"
               class="form-control mb-3" />
             <button type="submit" class="btn btn-danger w-100">Download Komentar CSV</button>
           </form>
@@ -165,11 +169,12 @@
     applyTheme(savedTheme);
 
 
-    // Handler untuk downloadForm (tetap seperti ini)
+    // Handler untuk downloadForm
     document.getElementById('downloadForm').addEventListener('submit', function (e) {
       e.preventDefault();
 
       const appid = document.getElementById('appid').value.trim();
+      const count = document.getElementById('count').value || 1000;
       const overlay = document.getElementById('loadingOverlay');
 
       if (!appid) {
@@ -181,7 +186,7 @@
 
       fetch('/download_ulasan', {
         method: 'POST',
-        body: new URLSearchParams({ appid: appid })
+        body: new URLSearchParams({ appid: appid, count: count })
       })
         .then(response => {
           if (!response.ok) throw new Error('Terjadi kesalahan saat mengunduh ulasan.');
@@ -199,7 +204,65 @@
         })
         .catch(err => alert(err.message))
         .finally(() => overlay.style.display = 'none');
-    }); 
+    });
+
+
+
+    // Handler untuk ytForm
+    document.getElementById('ytForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      const ytUrl = this.yt_url.value.trim();
+      const jumlahKomentar = this.jumlah_komentar.value.trim();
+      const overlay = document.getElementById('loadingOverlay');
+
+      if (!ytUrl) {
+        alert("URL YouTube tidak boleh kosong.");
+        return;
+      }
+
+      if (jumlahKomentar && (!Number.isInteger(+jumlahKomentar) || +jumlahKomentar < 1)) {
+        alert("Jumlah komentar harus berupa angka bulat positif.");
+        return;
+      }
+
+      overlay.style.display = 'flex';
+
+      fetch('/ambil_komentar_yt', {
+        method: 'POST',
+        body: new URLSearchParams({
+          yt_url: ytUrl,
+          jumlah_komentar: jumlahKomentar
+        })
+      })
+        .then(response => {
+          if (!response.ok) throw new Error('Terjadi kesalahan saat mengunduh komentar.');
+
+          const disposition = response.headers.get('Content-Disposition');
+          let filename = 'komentar_youtube.csv';
+
+          if (disposition && disposition.includes('filename=')) {
+            const match = disposition.match(/filename="?([^"]+)"?/);
+            if (match) filename = match[1];
+          }
+
+          return response.blob().then(blob => ({ blob, filename }));
+        })
+        .then(({ blob, filename }) => {
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          window.URL.revokeObjectURL(url);
+        })
+        .catch(err => alert(err.message))
+        .finally(() => overlay.style.display = 'none');
+    });
+
+
   </script>
 
 </body>
